@@ -30,18 +30,12 @@ public class Main {
 
         System.out.printf("Valor total estimado: R$ %.2f\n", valorTotal);
 
-        // ============================================================
-        // DEMONSTRAÇÃO DO PADRÃO BRIDGE - SISTEMA DE PAGAMENTOS
-        // ============================================================
         System.out.println("\n\n╔════════════════════════════════════════════════════════════════╗");
         System.out.println("║          PADRÃO BRIDGE - SISTEMA DE PAGAMENTOS                ║");
         System.out.println("╚════════════════════════════════════════════════════════════════╝\n");
 
         demonstrarPagamentos(valorTotal);
 
-        // ============================================================
-        // DEMONSTRAÇÃO DO PADRÃO BRIDGE - SISTEMA DE RELATÓRIOS
-        // ============================================================
         System.out.println("\n\n╔════════════════════════════════════════════════════════════════╗");
         System.out.println("║          PADRÃO BRIDGE - SISTEMA DE RELATÓRIOS                ║");
         System.out.println("╚════════════════════════════════════════════════════════════════╝\n");
@@ -72,7 +66,6 @@ public class Main {
     }
 
     private static void demonstrarRelatorios(List<Atendimento> atendimentos) {
-        // Seleciona um atendimento para demonstração
         Atendimento atendimentoExemplo = atendimentos.get(0);
 
         System.out.println("--- EXEMPLO 1: Relatório de Orçamento em PDF ---\n");

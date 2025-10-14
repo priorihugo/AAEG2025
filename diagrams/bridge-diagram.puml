@@ -1,0 +1,211 @@
+@startuml bridge-pattern
+
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+skinparam backgroundColor #FEFEFE
+skinparam class {
+    BackgroundColor<<abstraction>> LightBlue
+    BackgroundColor<<refined>> SkyBlue
+    BackgroundColor<<implementor>> LightGreen
+    BackgroundColor<<concrete>> PaleGreen
+    BorderColor Black
+    ArrowColor Black
+}
+
+title Padrão Bridge - Sistema de Gestão de Oficina Mecânica
+
+package "Sistema de Pagamentos" {
+
+    interface IMetodoPagamento <<implementor>> {
+        +processar(valor: double, parcelas: int): boolean
+        +getNome(): String
+        +getTaxa(): double
+    }
+
+    class PagamentoDinheiro <<concrete>> {
+        +processar(valor: double, parcelas: int): boolean
+        +getNome(): String
+        +getTaxa(): double
+    }
+
+    class PagamentoCartao <<concrete>> {
+        +processar(valor: double, parcelas: int): boolean
+        +getNome(): String
+        +getTaxa(): double
+    }
+
+    class PagamentoPIX <<concrete>> {
+        -gerarChavePIX(): String
+        +processar(valor: double, parcelas: int): boolean
+        +getNome(): String
+        +getTaxa(): double
+    }
+
+    class PagamentoBoleto <<concrete>> {
+        -gerarCodigoBarras(parcela: int): String
+        +processar(valor: double, parcelas: int): boolean
+        +getNome(): String
+        +getTaxa(): double
+    }
+
+    abstract class Pagamento <<abstraction>> {
+        #metodoPagamento: IMetodoPagamento
+        #valor: double
+        #descricao: String
+        +{abstract} efetuarPagamento(): boolean
+        #calcularValorComTaxa(): double
+        #exibirInformacoes(): void
+        +getValor(): double
+        +getDescricao(): String
+        +getMetodoPagamento(): IMetodoPagamento
+    }
+
+    class PagamentoAVista <<refined>> {
+        -desconto: double
+        +efetuarPagamento(): boolean
+        -calcularDesconto(): double
+        +getDesconto(): double
+    }
+
+    class PagamentoParcelado <<refined>> {
+        -numeroParcelas: int
+        -MAX_PARCELAS_SEM_JUROS: int = 3
+        -TAXA_JUROS: double = 0.02
+        +efetuarPagamento(): boolean
+        -calcularValorComJuros(): double
+        -validarParcelas(parcelas: int): int
+        +getNumeroParcelas(): int
+    }
+
+    IMetodoPagamento <|.. PagamentoDinheiro
+    IMetodoPagamento <|.. PagamentoCartao
+    IMetodoPagamento <|.. PagamentoPIX
+    IMetodoPagamento <|.. PagamentoBoleto
+
+    Pagamento o-right-> IMetodoPagamento : implementação >
+    Pagamento <|-- PagamentoAVista
+    Pagamento <|-- PagamentoParcelado
+}
+
+package "Sistema de Relatórios" {
+
+    interface IFormatoRelatorio <<implementor>> {
+        +gerarCabecalho(titulo: String): String
+        +gerarCorpo(dados: Map<String, Object>): String
+        +gerarRodape(): String
+        +getNomeFormato(): String
+        +getExtensao(): String
+    }
+
+    class RelatorioPDF <<concrete>> {
+        +gerarCabecalho(titulo: String): String
+        +gerarCorpo(dados: Map<String, Object>): String
+        +gerarRodape(): String
+        +getNomeFormato(): String
+        +getExtensao(): String
+        -formatarValor(valor: Object): String
+    }
+
+    class RelatorioExcel <<concrete>> {
+        +gerarCabecalho(titulo: String): String
+        +gerarCorpo(dados: Map<String, Object>): String
+        +gerarRodape(): String
+        +getNomeFormato(): String
+        +getExtensao(): String
+        -formatarValor(valor: Object): String
+    }
+
+    class RelatorioHTML <<concrete>> {
+        +gerarCabecalho(titulo: String): String
+        +gerarCorpo(dados: Map<String, Object>): String
+        +gerarRodape(): String
+        +getNomeFormato(): String
+        +getExtensao(): String
+        -formatarValor(valor: Object): String
+    }
+
+    abstract class Relatorio <<abstraction>> {
+        #formato: IFormatoRelatorio
+        #titulo: String
+        #dados: Map<String, Object>
+        +gerar(): String
+        +{abstract} prepararDados(): void
+        +exibir(): void
+        +salvar(nomeArquivo: String): void
+        #adicionarDado(chave: String, valor: Object): void
+        +getTitulo(): String
+        +getFormato(): IFormatoRelatorio
+    }
+
+    class RelatorioOrcamento <<refined>> {
+        -atendimentos: List<Atendimento>
+        -nomeCliente: String
+        +prepararDados(): void
+        +getAtendimentos(): List<Atendimento>
+        +getNomeCliente(): String
+    }
+
+    class RelatorioServico <<refined>> {
+        -atendimento: Atendimento
+        -mecanico: String
+        -observacoes: String
+        +prepararDados(): void
+        +getAtendimento(): Atendimento
+        +getMecanico(): String
+        +getObservacoes(): String
+    }
+
+    IFormatoRelatorio <|.. RelatorioPDF
+    IFormatoRelatorio <|.. RelatorioExcel
+    IFormatoRelatorio <|.. RelatorioHTML
+
+    Relatorio o-right-> IFormatoRelatorio : implementação >
+    Relatorio <|-- RelatorioOrcamento
+    Relatorio <|-- RelatorioServico
+}
+
+note top of IMetodoPagamento
+  <b>Implementor (Implementação)</b>
+  Define interface para implementações
+  concretas de métodos de pagamento
+end note
+
+note top of Pagamento
+  <b>Abstraction (Abstração)</b>
+  Define interface de alto nível e
+  mantém referência ao Implementor
+end note
+
+note bottom of PagamentoAVista
+  <b>Refined Abstraction</b>
+  Estende a abstração base
+  adicionando desconto
+end note
+
+note bottom of PagamentoCartao
+  <b>Concrete Implementor</b>
+  Implementa processamento
+  específico do método
+end note
+
+note as N1
+  <b>Padrão Bridge</b>
+
+  Separa abstração de implementação,
+  permitindo que variem independentemente.
+
+  <b>Vantagens:</b>
+  • Desacopla abstração da implementação
+  • Evita explosão de classes
+  • Facilita extensão de ambas hierarquias
+  • Permite trocar implementações em runtime
+
+  <b>No projeto:</b>
+  Tipos de pagamento (à vista, parcelado)
+  independentes dos métodos (PIX, Cartão, etc)
+
+  Tipos de relatório (orçamento, serviço)
+  independentes dos formatos (PDF, Excel, HTML)
+end note
+
+@enduml

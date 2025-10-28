@@ -125,7 +125,6 @@ class RelatorioTest {
 
     @Test
     void testAlternarFormatosMesmoRelatorio() {
-        // Mesmo relatório em diferentes formatos
         Atendimento atendimento = new Revisao("008", "Lucas Rocha", "Nissan Kicks", "Troca de filtros");
         List<Atendimento> atendimentos = Arrays.asList(atendimento);
 
@@ -133,12 +132,10 @@ class RelatorioTest {
         RelatorioOrcamento relatorioExcel = new RelatorioOrcamento(new RelatorioExcel(), "Lucas Rocha", atendimentos);
         RelatorioOrcamento relatorioHTML = new RelatorioOrcamento(new RelatorioHTML(), "Lucas Rocha", atendimentos);
 
-        // Todos devem gerar conteúdo válido
         assertNotNull(relatorioPDF.gerar());
         assertNotNull(relatorioExcel.gerar());
         assertNotNull(relatorioHTML.gerar());
 
-        // Mas em formatos diferentes
         assertTrue(relatorioPDF.gerar().contains("╔════"));
         assertTrue(relatorioExcel.gerar().contains("┌──────"));
         assertTrue(relatorioHTML.gerar().contains("<!DOCTYPE html>"));

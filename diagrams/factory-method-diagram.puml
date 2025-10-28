@@ -1,0 +1,61 @@
+@startuml Factory Method Pattern - Sistema de Oficina
+
+title Padrão Factory Method - Sistema de Gestão de Oficina Mecânica
+
+interface IServico {
+    + executar(): String
+    + cancelar(): String
+    + getValorServico(): Double
+}
+
+class ServicoFactory {
+    + {static} obterServico(tipoServico: String): IServico
+}
+
+class ServicoDiagnostico {
+    + executar(): String
+    + cancelar(): String
+    + getValorServico(): Double
+}
+
+class ServicoRevisao {
+    + executar(): String
+    + cancelar(): String
+    + getValorServico(): Double
+}
+
+class ServicoManutencaoPreventiva {
+    + executar(): String
+    + cancelar(): String
+    + getValorServico(): Double
+}
+
+class ServicoManutencaoCorretiva {
+    + executar(): String
+    + cancelar(): String
+    + getValorServico(): Double
+}
+
+IServico <|.. ServicoDiagnostico
+IServico <|.. ServicoRevisao
+IServico <|.. ServicoManutencaoPreventiva
+IServico <|.. ServicoManutencaoCorretiva
+
+ServicoFactory ..> IServico : <<creates>>
+ServicoFactory ..> ServicoDiagnostico : <<creates>>
+ServicoFactory ..> ServicoRevisao : <<creates>>
+ServicoFactory ..> ServicoManutencaoPreventiva : <<creates>>
+ServicoFactory ..> ServicoManutencaoCorretiva : <<creates>>
+
+note right of ServicoFactory
+  Factory Method que cria instâncias
+  de serviços dinamicamente usando
+  reflexão (Class.forName)
+end note
+
+note bottom of IServico
+  Interface comum para todos
+  os serviços da oficina
+end note
+
+@enduml

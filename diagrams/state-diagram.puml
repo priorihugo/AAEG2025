@@ -1,0 +1,97 @@
+@startuml state-pattern
+
+title Padrão State - Controle de Estados de Atendimento
+
+interface AtendimentoState {
+    +avancar(atendimento: Atendimento): void
+    +cancelar(atendimento: Atendimento): void
+    +getNomeEstado(): String
+    +getDescricao(): String
+    +podeCancelar(): boolean
+}
+
+class AgendadoState {
+    +avancar(atendimento: Atendimento): void
+    +cancelar(atendimento: Atendimento): void
+    +getNomeEstado(): String
+    +getDescricao(): String
+    +podeCancelar(): boolean
+}
+
+class EmAndamentoState {
+    +avancar(atendimento: Atendimento): void
+    +cancelar(atendimento: Atendimento): void
+    +getNomeEstado(): String
+    +getDescricao(): String
+    +podeCancelar(): boolean
+}
+
+class AguardandoPecasState {
+    +avancar(atendimento: Atendimento): void
+    +cancelar(atendimento: Atendimento): void
+    +getNomeEstado(): String
+    +getDescricao(): String
+    +podeCancelar(): boolean
+}
+
+class ConcluidoState {
+    +avancar(atendimento: Atendimento): void
+    +cancelar(atendimento: Atendimento): void
+    +getNomeEstado(): String
+    +getDescricao(): String
+    +podeCancelar(): boolean
+}
+
+class EntregueState {
+    +avancar(atendimento: Atendimento): void
+    +cancelar(atendimento: Atendimento): void
+    +getNomeEstado(): String
+    +getDescricao(): String
+    +podeCancelar(): boolean
+}
+
+class CanceladoState {
+    +avancar(atendimento: Atendimento): void
+    +cancelar(atendimento: Atendimento): void
+    +getNomeEstado(): String
+    +getDescricao(): String
+    +podeCancelar(): boolean
+}
+
+abstract class Atendimento {
+    -id: String
+    -cliente: String
+    -veiculo: String
+    -dataHora: LocalDateTime
+    -descricao: String
+    -valorEstimado: Double
+    -estado: AtendimentoState
+
+    +avancar(): void
+    +cancelar(): void
+    +aguardarPecas(): void
+    +getEstado(): AtendimentoState
+    +setEstado(estado: AtendimentoState): void
+    +getStatusCompleto(): String
+}
+
+AtendimentoState <|.. AgendadoState
+AtendimentoState <|.. EmAndamentoState
+AtendimentoState <|.. AguardandoPecasState
+AtendimentoState <|.. ConcluidoState
+AtendimentoState <|.. EntregueState
+AtendimentoState <|.. CanceladoState
+
+Atendimento o--> AtendimentoState : estado
+
+note right of Atendimento
+  Context que delega comportamento
+  ao estado atual
+end note
+
+note bottom of AtendimentoState
+  Define interface comum
+  para todos os estados
+end note
+
+@enduml

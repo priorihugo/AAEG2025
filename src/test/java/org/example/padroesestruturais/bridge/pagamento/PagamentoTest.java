@@ -50,7 +50,7 @@ class PagamentoTest {
         IMetodoPagamento dinheiro = new PagamentoDinheiro();
         PagamentoAVista pagamento = new PagamentoAVista(dinheiro, 1000.0, "Serviço teste");
 
-        assertEquals(0.05, pagamento.getDesconto()); // 5% de desconto
+        assertEquals(0.05, pagamento.getDesconto());
     }
 
     @Test
@@ -58,7 +58,7 @@ class PagamentoTest {
         IMetodoPagamento pix = new PagamentoPIX();
         PagamentoAVista pagamento = new PagamentoAVista(pix, 1000.0, "Serviço teste");
 
-        assertEquals(0.05, pagamento.getDesconto()); // 5% de desconto
+        assertEquals(0.05, pagamento.getDesconto());
     }
 
     @Test
@@ -66,19 +66,19 @@ class PagamentoTest {
         IMetodoPagamento cartao = new PagamentoCartao();
         PagamentoAVista pagamento = new PagamentoAVista(cartao, 1000.0, "Serviço teste");
 
-        assertEquals(0.0, pagamento.getDesconto()); // Sem desconto
+        assertEquals(0.0, pagamento.getDesconto());
     }
 
     @Test
     void testTaxaCartao() {
         IMetodoPagamento cartao = new PagamentoCartao();
-        assertEquals(0.029, cartao.getTaxa()); // 2.9%
+        assertEquals(0.029, cartao.getTaxa());
     }
 
     @Test
     void testTaxaBoleto() {
         IMetodoPagamento boleto = new PagamentoBoleto();
-        assertEquals(0.015, boleto.getTaxa()); // 1.5%
+        assertEquals(0.015, boleto.getTaxa());
     }
 
     @Test
@@ -86,7 +86,6 @@ class PagamentoTest {
         IMetodoPagamento dinheiro = new PagamentoDinheiro();
         PagamentoParcelado pagamento = new PagamentoParcelado(dinheiro, 1000.0, "Serviço", 5);
 
-        // Deve ser ajustado para 1x automaticamente
         assertEquals(1, pagamento.getNumeroParcelas());
     }
 
@@ -95,7 +94,6 @@ class PagamentoTest {
         IMetodoPagamento pix = new PagamentoPIX();
         PagamentoParcelado pagamento = new PagamentoParcelado(pix, 1000.0, "Serviço", 3);
 
-        // Deve ser ajustado para 1x automaticamente
         assertEquals(1, pagamento.getNumeroParcelas());
     }
 }

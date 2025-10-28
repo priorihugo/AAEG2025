@@ -1,0 +1,37 @@
+@startuml Singleton Pattern - Sistema de Oficina
+
+title Padrão Singleton - Sistema de Gestão de Oficina Mecânica
+
+class ConfiguracaoOficina {
+    - {static} instance: ConfiguracaoOficina
+    - nomeOficina: String
+    - endereco: String
+    - telefone: String
+    - taxaServico: Double
+    
+    - ConfiguracaoOficina()
+    + {static} getInstance(): ConfiguracaoOficina
+    + getNomeOficina(): String
+    + setNomeOficina(nomeOficina: String): void
+    + getEndereco(): String
+    + setEndereco(endereco: String): void
+    + getTelefone(): String
+    + setTelefone(telefone: String): void
+    + getTaxaServico(): Double
+    + setTaxaServico(taxaServico: Double): void
+}
+
+note right of ConfiguracaoOficina
+  Singleton que armazena
+  configurações globais da oficina.
+  
+  Garante uma única instância
+  compartilhada em todo o sistema.
+  
+  Construtor privado impede
+  criação de novas instâncias.
+end note
+
+ConfiguracaoOficina o-- ConfiguracaoOficina : instance
+
+@enduml

@@ -1,0 +1,75 @@
+@startuml Abstract Factory Pattern - Sistema de Oficina
+
+title Padrão Abstract Factory - Sistema de Gestão de Oficina Mecânica
+
+interface OficinaFactory {
+    + createOrcamento(): IOrcamento
+    + createOrdemServico(): IOrdemServico
+}
+
+interface IOrcamento {
+    + gerar(): String
+}
+
+interface IOrdemServico {
+    + emitir(): String
+}
+
+class AtendimentoExpressoFactory {
+    + createOrcamento(): IOrcamento
+    + createOrdemServico(): IOrdemServico
+}
+
+class AtendimentoDetalhadoFactory {
+    + createOrcamento(): IOrcamento
+    + createOrdemServico(): IOrdemServico
+}
+
+class OrcamentoExpresso {
+    + gerar(): String
+}
+
+class OrcamentoDetalhado {
+    + gerar(): String
+}
+
+class OrdemServicoExpresso {
+    + emitir(): String
+}
+
+class OrdemServicoDetalhado {
+    + emitir(): String
+}
+
+OficinaFactory <|.. AtendimentoExpressoFactory
+OficinaFactory <|.. AtendimentoDetalhadoFactory
+
+IOrcamento <|.. OrcamentoExpresso
+IOrcamento <|.. OrcamentoDetalhado
+
+IOrdemServico <|.. OrdemServicoExpresso
+IOrdemServico <|.. OrdemServicoDetalhado
+
+AtendimentoExpressoFactory ..> OrcamentoExpresso : <<creates>>
+AtendimentoExpressoFactory ..> OrdemServicoExpresso : <<creates>>
+
+AtendimentoDetalhadoFactory ..> OrcamentoDetalhado : <<creates>>
+AtendimentoDetalhadoFactory ..> OrdemServicoDetalhado : <<creates>>
+
+note right of OficinaFactory
+  Abstract Factory que define
+  criação de famílias de objetos
+  relacionados (Orçamento + OS)
+end note
+
+note bottom of AtendimentoExpressoFactory
+  Cria família de produtos
+  para atendimento expresso
+end note
+
+note bottom of AtendimentoDetalhadoFactory
+  Cria família de produtos
+  para atendimento detalhado
+end note
+
+@enduml

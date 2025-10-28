@@ -1,0 +1,62 @@
+@startuml observer-pattern
+
+title Padrão Observer - Sistema de Notificações
+
+interface Subject {
+    +attach(observer: Observer): void
+    +detach(observer: Observer): void
+    +notifyObservers(): void
+}
+
+interface Observer {
+    +update(subject: Subject): void
+}
+
+class AtendimentoSubject {
+    -observers: List<Observer>
+    -estado: String
+    -descricao: String
+    +attach(observer: Observer): void
+    +detach(observer: Observer): void
+    +notifyObservers(): void
+    +setEstado(estado: String): void
+    +getEstado(): String
+    +getDescricao(): String
+}
+
+class EmailNotificationObserver {
+    -emailDestino: String
+    +EmailNotificationObserver(email: String)
+    +update(subject: Subject): void
+    -enviarEmail(atendimento: AtendimentoSubject): void
+}
+
+class SMSNotificationObserver {
+    -telefone: String
+    +SMSNotificationObserver(telefone: String)
+    +update(subject: Subject): void
+    -enviarSMS(atendimento: AtendimentoSubject): void
+}
+
+class LogObserver {
+    +update(subject: Subject): void
+    -registrarLog(atendimento: AtendimentoSubject): void
+}
+
+Subject <|.. AtendimentoSubject
+Observer <|.. EmailNotificationObserver
+Observer <|.. SMSNotificationObserver
+Observer <|.. LogObserver
+AtendimentoSubject o--> Observer : observers
+
+note right of AtendimentoSubject
+  Mantém lista de observers e
+  notifica quando estado muda
+end note
+
+note bottom of Observer
+  Interface que define contrato
+  de atualização para observers
+end note
+
+@enduml

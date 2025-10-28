@@ -37,10 +37,5 @@ build/
 ### Mac OS ###
 .DS_Store
 
-### Documentation ###
-DOCUMENTACAO.md
-*.md
-diagrams/
-
 ### Claude Code ###
 .claude/

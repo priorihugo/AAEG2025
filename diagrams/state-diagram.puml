@@ -10,7 +10,29 @@ interface AtendimentoState {
     +podeCancelar(): boolean
 }
 
+class StateManager <<Singleton>> {
+    -{static} instance: StateManager
+    -agendadoState: AgendadoState
+    -emAndamentoState: EmAndamentoState
+    -aguardandoPecasState: AguardandoPecasState
+    -concluidoState: ConcluidoState
+    -entregueState: EntregueState
+    -canceladoState: CanceladoState
+
+    -StateManager()
+    +{static} getInstance(): StateManager
+    +getAgendadoState(): AgendadoState
+    +getEmAndamentoState(): EmAndamentoState
+    +getAguardandoPecasState(): AguardandoPecasState
+    +getConcluidoState(): ConcluidoState
+    +getEntregueState(): EntregueState
+    +getCanceladoState(): CanceladoState
+}
+
 class AgendadoState {
+    -stateManager: StateManager
+
+    +AgendadoState(stateManager: StateManager)
     +avancar(atendimento: Atendimento): void
     +cancelar(atendimento: Atendimento): void
     +getNomeEstado(): String
@@ -19,6 +41,9 @@ class AgendadoState {
 }
 
 class EmAndamentoState {
+    -stateManager: StateManager
+
+    +EmAndamentoState(stateManager: StateManager)
     +avancar(atendimento: Atendimento): void
     +cancelar(atendimento: Atendimento): void
     +getNomeEstado(): String
@@ -27,6 +52,9 @@ class EmAndamentoState {
 }
 
 class AguardandoPecasState {
+    -stateManager: StateManager
+
+    +AguardandoPecasState(stateManager: StateManager)
     +avancar(atendimento: Atendimento): void
     +cancelar(atendimento: Atendimento): void
     +getNomeEstado(): String
@@ -35,6 +63,9 @@ class AguardandoPecasState {
 }
 
 class ConcluidoState {
+    -stateManager: StateManager
+
+    +ConcluidoState(stateManager: StateManager)
     +avancar(atendimento: Atendimento): void
     +cancelar(atendimento: Atendimento): void
     +getNomeEstado(): String
@@ -43,6 +74,9 @@ class ConcluidoState {
 }
 
 class EntregueState {
+    -stateManager: StateManager
+
+    +EntregueState(stateManager: StateManager)
     +avancar(atendimento: Atendimento): void
     +cancelar(atendimento: Atendimento): void
     +getNomeEstado(): String
@@ -51,6 +85,9 @@ class EntregueState {
 }
 
 class CanceladoState {
+    -stateManager: StateManager
+
+    +CanceladoState(stateManager: StateManager)
     +avancar(atendimento: Atendimento): void
     +cancelar(atendimento: Atendimento): void
     +getNomeEstado(): String
@@ -59,22 +96,27 @@ class CanceladoState {
 }
 
 abstract class Atendimento {
-    -id: String
-    -cliente: String
-    -veiculo: String
-    -dataHora: LocalDateTime
-    -descricao: String
-    -valorEstimado: Double
-    -estado: AtendimentoState
+    #id: String
+    #cliente: String
+    #veiculo: String
+    #dataHora: LocalDateTime
+    #descricao: String
+    #valorEstimado: Double
+    #estado: AtendimentoState
+    #stateManager: StateManager
 
+    +Atendimento(id, cliente, veiculo, descricao)
     +avancar(): void
     +cancelar(): void
     +aguardarPecas(): void
     +getEstado(): AtendimentoState
     +setEstado(estado: AtendimentoState): void
     +getStatusCompleto(): String
+    +{abstract} getTipo(): String
+    +{abstract} calcularValor(): void
 }
 
+' Implementações
 AtendimentoState <|.. AgendadoState
 AtendimentoState <|.. EmAndamentoState
 AtendimentoState <|.. AguardandoPecasState
@@ -82,16 +124,66 @@ AtendimentoState <|.. ConcluidoState
 AtendimentoState <|.. EntregueState
 AtendimentoState <|.. CanceladoState
 
+' Associações
 Atendimento o--> AtendimentoState : estado
+Atendimento --> StateManager : stateManager
+
+' StateManager cria e gerencia estados
+StateManager *-- AgendadoState
+StateManager *-- EmAndamentoState
+StateManager *-- AguardandoPecasState
+StateManager *-- ConcluidoState
+StateManager *-- EntregueState
+StateManager *-- CanceladoState
+
+' Estados usam StateManager para transições
+AgendadoState --> StateManager : usa
+EmAndamentoState --> StateManager : usa
+AguardandoPecasState --> StateManager : usa
+ConcluidoState --> StateManager : usa
+EntregueState --> StateManager : usa
+CanceladoState --> StateManager : usa
 
 note right of Atendimento
   Context que delega comportamento
-  ao estado atual
+  ao estado atual.
+  Inicializa com AgendadoState.
 end note
 
 note bottom of AtendimentoState
   Define interface comum
   para todos os estados
+end note
+
+note top of StateManager
+  Singleton que gerencia todas
+  as instâncias dos estados.
+  Garante que cada estado tenha
+  apenas uma instância.
+end note
+
+note left of AgendadoState
+  Transições:
+  • avancar() → EmAndamento
+  • cancelar() → Cancelado
+end note
+
+note left of EmAndamentoState
+  Transições:
+  • avancar() → Concluído
+  • cancelar() → Não permitido
+  • aguardarPecas() → AguardandoPeças
+end note
+
+note right of ConcluidoState
+  Transições:
+  • avancar() → Entregue
+  • cancelar() → Não permitido
+end note
+
+note right of EntregueState
+  Estado terminal:
+  Não permite mais transições
 end note
 
 @enduml

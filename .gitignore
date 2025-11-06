@@ -39,3 +39,6 @@ build/
 
 ### Claude Code ###
 .claude/
+
+### Markdown files ###
+*.md

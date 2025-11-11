@@ -1,0 +1,226 @@
+@startuml strategy-pattern
+
+title Padrão Strategy - Sistema de Cálculo de Descontos
+
+' ============================================================
+' INTERFACE STRATEGY
+' ============================================================
+
+interface DescontoStrategy {
+    +calcularDesconto(valorOriginal: double): double
+    +getDescricao(): String
+}
+
+' ============================================================
+' ESTRATÉGIAS CONCRETAS
+' ============================================================
+
+class SemDescontoStrategy {
+    +calcularDesconto(valorOriginal: double): double
+    +getDescricao(): String
+}
+
+class DescontoVIPStrategy {
+    -{static} PERCENTUAL_DESCONTO: double = 15.0
+
+    +calcularDesconto(valorOriginal: double): double
+    +getDescricao(): String
+}
+
+class DescontoVolumeStrategy {
+    -{static} PERCENTUAL_DESCONTO: double = 10.0
+    -{static} QUANTIDADE_MINIMA: int = 3
+    -quantidadeServicos: int
+
+    +DescontoVolumeStrategy(quantidadeServicos: int)
+    +calcularDesconto(valorOriginal: double): double
+    +getDescricao(): String
+    +getQuantidadeServicos(): int
+}
+
+class DescontoPromocionalStrategy {
+    -{static} PERCENTUAL_MINIMO: double = 0.0
+    -{static} PERCENTUAL_MAXIMO: double = 100.0
+    -percentualDesconto: double
+    -nomeCampanha: String
+
+    +DescontoPromocionalStrategy(percentual: double, campanha: String)
+    +calcularDesconto(valorOriginal: double): double
+    +getDescricao(): String
+    +getPercentualDesconto(): double
+    +getNomeCampanha(): String
+    -validarPercentual(percentual: double): void
+}
+
+' ============================================================
+' CONTEXTO
+' ============================================================
+
+class CalculadoraPreco {
+    -descontoStrategy: DescontoStrategy
+
+    +CalculadoraPreco(descontoStrategy: DescontoStrategy)
+    +setDescontoStrategy(descontoStrategy: DescontoStrategy): void
+    +calcularDesconto(valorOriginal: double): double
+    +calcularPrecoFinal(valorOriginal: double): double
+    +exibirDetalhamento(valorOriginal: double): void
+    +getDescontoStrategy(): DescontoStrategy
+    -validarValor(valor: double): void
+    -validarStrategy(strategy: DescontoStrategy): void
+}
+
+' ============================================================
+' RELACIONAMENTOS - IMPLEMENTAÇÃO
+' ============================================================
+
+DescontoStrategy <|.. SemDescontoStrategy
+DescontoStrategy <|.. DescontoVIPStrategy
+DescontoStrategy <|.. DescontoVolumeStrategy
+DescontoStrategy <|.. DescontoPromocionalStrategy
+
+' ============================================================
+' RELACIONAMENTOS - COMPOSIÇÃO
+' ============================================================
+
+CalculadoraPreco o--> DescontoStrategy : descontoStrategy
+
+' ============================================================
+' NOTAS EXPLICATIVAS
+' ============================================================
+
+note right of DescontoStrategy
+  Interface base do padrão Strategy.
+
+  Define contrato comum para todos
+  os algoritmos de cálculo de desconto.
+
+  Permite trocar estratégias em
+  tempo de execução.
+end note
+
+note left of CalculadoraPreco
+  CONTEXTO do padrão Strategy.
+
+  • Mantém referência para DescontoStrategy
+  • Delega cálculo de desconto para estratégia
+  • Permite trocar estratégia dinamicamente
+  • Valida valores e estratégias
+
+  Princípios aplicados:
+  • Open/Closed Principle
+  • Dependency Inversion Principle
+end note
+
+note bottom of SemDescontoStrategy
+  Estratégia PADRÃO:
+
+  Cliente Regular
+  • Sem desconto (0%)
+  • Retorna sempre 0.0
+
+  Uso: Clientes sem
+  benefícios especiais
+end note
+
+note bottom of DescontoVIPStrategy
+  Estratégia para CLIENTES VIP:
+
+  • Desconto fixo de 15%
+  • Sem condições adicionais
+  • Aplicado automaticamente
+
+  Exemplo:
+  R$ 1000,00 → R$ 850,00
+end note
+
+note bottom of DescontoVolumeStrategy
+  Estratégia por QUANTIDADE:
+
+  • Desconto de 10% se > 3 serviços
+  • Sem desconto se ≤ 3 serviços
+  • Incentiva volume de serviços
+
+  Exemplo (5 serviços):
+  R$ 1000,00 → R$ 900,00
+
+  Exemplo (2 serviços):
+  R$ 1000,00 → R$ 1000,00
+end note
+
+note bottom of DescontoPromocionalStrategy
+  Estratégia CONFIGURÁVEL:
+
+  • Percentual customizável (0-100%)
+  • Nome da campanha
+  • Validação de percentual
+
+  Exemplos de uso:
+  • Black Friday: 20%
+  • Inauguração: 30%
+  • Aniversário: 25%
+
+  R$ 1000,00 (20%) → R$ 800,00
+end note
+
+' ============================================================
+' EXEMPLO DE USO
+' ============================================================
+
+note as N1
+  **Exemplo de Uso - Trocar Estratégias:**
+
+  // Cliente Regular
+  CalculadoraPreco calc =
+    new CalculadoraPreco(new SemDescontoStrategy());
+  double preco = calc.calcularPrecoFinal(1000.0);
+  // Result: R$ 1000.00
+
+  // Trocar para Cliente VIP
+  calc.setDescontoStrategy(new DescontoVIPStrategy());
+  preco = calc.calcularPrecoFinal(1000.0);
+  // Result: R$ 850.00
+
+  // Trocar para Desconto por Volume
+  calc.setDescontoStrategy(new DescontoVolumeStrategy(5));
+  preco = calc.calcularPrecoFinal(1000.0);
+  // Result: R$ 900.00
+
+  // Trocar para Promoção
+  calc.setDescontoStrategy(
+    new DescontoPromocionalStrategy(20.0, "Black Friday")
+  );
+  preco = calc.calcularPrecoFinal(1000.0);
+  // Result: R$ 800.00
+
+  **Benefícios:**
+  ✓ Elimina if/else complexos
+  ✓ Fácil adicionar novos descontos
+  ✓ Algoritmos intercambiáveis
+  ✓ Testável isoladamente
+end note
+
+' ============================================================
+' PRINCÍPIOS SOLID APLICADOS
+' ============================================================
+
+note as N2
+  **Princípios SOLID no Strategy:**
+
+  **S** - Single Responsibility:
+    Cada estratégia tem uma única responsabilidade
+
+  **O** - Open/Closed:
+    Aberto para extensão (novas estratégias)
+    Fechado para modificação (código existente)
+
+  **L** - Liskov Substitution:
+    Qualquer DescontoStrategy pode substituir outra
+
+  **I** - Interface Segregation:
+    Interface coesa com métodos relevantes
+
+  **D** - Dependency Inversion:
+    CalculadoraPreco depende de abstração
+end note
+
+@enduml

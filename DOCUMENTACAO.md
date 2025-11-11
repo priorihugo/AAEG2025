@@ -226,6 +226,12 @@ O projeto inclui testes unitários para todas as classes principais:
    - Observers podem ser adicionados/removidos dinamicamente
    - Baixo acoplamento entre subject e observers
 
+8. **Strategy**: Algoritmos intercambiáveis para cálculo de descontos
+   - Estratégias: SemDesconto, DescontoVIP, DescontoVolume, DescontoPromocional
+   - Troca de estratégia em tempo de execução
+   - Elimina condicionais complexas (if/else)
+   - Facilita adição de novos tipos de desconto
+
 ## 🎨 Demonstração do Padrão Decorator
 
 ### Exemplo de Uso
@@ -324,6 +330,45 @@ atendimento.setEstado("CONCLUÍDO");
 ### Executar Demo do Observer
 ```bash
 mvn exec:java -Dexec.mainClass="org.example.padroescomportamentais.observer.ObserverDemo"
+```
+
+## 💰 Demonstração do Padrão Strategy
+
+### Exemplo de Uso
+```java
+// Criar calculadora com estratégia inicial
+CalculadoraPreco calculadora = new CalculadoraPreco(new SemDescontoStrategy());
+
+// Cliente Regular (sem desconto)
+double precoFinal = calculadora.calcularPrecoFinal(1000.0);
+// Resultado: R$ 1000.00
+
+// Trocar para Cliente VIP (15% desconto)
+calculadora.setDescontoStrategy(new DescontoVIPStrategy());
+precoFinal = calculadora.calcularPrecoFinal(1000.0);
+// Resultado: R$ 850.00
+
+// Desconto por Volume (10% para > 3 serviços)
+calculadora.setDescontoStrategy(new DescontoVolumeStrategy(5));
+precoFinal = calculadora.calcularPrecoFinal(1000.0);
+// Resultado: R$ 900.00
+
+// Promoção Black Friday (20% desconto)
+calculadora.setDescontoStrategy(new DescontoPromocionalStrategy(20.0, "Black Friday"));
+precoFinal = calculadora.calcularPrecoFinal(1000.0);
+// Resultado: R$ 800.00
+```
+
+### Benefícios
+- ✅ Algoritmos de desconto intercambiáveis
+- ✅ Elimina condicionais complexas (if/else)
+- ✅ Fácil adicionar novos tipos de desconto
+- ✅ Princípio Open/Closed aplicado
+- ✅ Cada estratégia tem responsabilidade única
+
+### Executar Demo do Strategy
+```bash
+mvn exec:java -Dexec.mainClass="org.example.padroescomportamentais.strategy.StrategyDemo"
 ```
 
 ## 📚 Conceitos de OOP Demonstrados

@@ -1,0 +1,243 @@
+@startuml chainofresponsibility-pattern
+
+title Padrão Chain of Responsibility - Sistema de Triagem de Urgência
+
+' ============================================================
+' INTERFACE HANDLER
+' ============================================================
+
+interface TriagemHandler {
+    +processarTriagem(solicitacao: SolicitacaoAtendimento): PrioridadeAtendimento
+    +setProximo(handler: TriagemHandler): TriagemHandler
+}
+
+' ============================================================
+' CLASSE ABSTRATA BASE (Template Method)
+' ============================================================
+
+abstract class TriagemBase {
+    #proximoHandler: TriagemHandler
+
+    +setProximo(handler: TriagemHandler): TriagemHandler
+    +processarTriagem(solicitacao: SolicitacaoAtendimento): PrioridadeAtendimento
+    #{abstract} podeProcessar(solicitacao: SolicitacaoAtendimento): boolean
+    #{abstract} getPrioridade(): PrioridadeAtendimento
+    #registrarTriagem(solicitacao: SolicitacaoAtendimento, prioridade: PrioridadeAtendimento): void
+}
+
+' ============================================================
+' HANDLERS CONCRETOS
+' ============================================================
+
+class TriagemEmergencial {
+    -{static} PALAVRAS_CHAVE_EMERGENCIAIS: String[]
+
+    #podeProcessar(solicitacao: SolicitacaoAtendimento): boolean
+    #getPrioridade(): PrioridadeAtendimento
+}
+
+class TriagemUrgente {
+    -{static} PALAVRAS_CHAVE_URGENTES: String[]
+
+    #podeProcessar(solicitacao: SolicitacaoAtendimento): boolean
+    #getPrioridade(): PrioridadeAtendimento
+}
+
+class TriagemNormal {
+    -{static} PALAVRAS_CHAVE_NORMAIS: String[]
+
+    #podeProcessar(solicitacao: SolicitacaoAtendimento): boolean
+    #getPrioridade(): PrioridadeAtendimento
+}
+
+class TriagemBaixaPrioridade {
+    #podeProcessar(solicitacao: SolicitacaoAtendimento): boolean
+    #getPrioridade(): PrioridadeAtendimento
+    #registrarTriagem(solicitacao: SolicitacaoAtendimento, prioridade: PrioridadeAtendimento): void
+}
+
+' ============================================================
+' MODELO - SOLICITAÇÃO
+' ============================================================
+
+class SolicitacaoAtendimento {
+    -cliente: String
+    -veiculo: String
+    -problemaRelatado: String
+    -sintomas: List<String>
+    -dataHoraSolicitacao: LocalDateTime
+
+    +SolicitacaoAtendimento(cliente, veiculo, problema)
+    +adicionarSintoma(sintoma: String): SolicitacaoAtendimento
+    +contemSintoma(palavrasChave: String...): boolean
+    +getCliente(): String
+    +getVeiculo(): String
+    +getProblemaRelatado(): String
+    +getSintomas(): List<String>
+    +getDataHoraSolicitacao(): LocalDateTime
+    +toString(): String
+}
+
+' ============================================================
+' MODELO - ENUM PRIORIDADE
+' ============================================================
+
+enum PrioridadeAtendimento {
+    EMERGENCIAL
+    URGENTE
+    NORMAL
+    BAIXA
+
+    -descricao: String
+    -slaHoras: int
+    -mensagem: String
+
+    +getDescricao(): String
+    +getSlaHoras(): int
+    +getMensagem(): String
+    +toString(): String
+}
+
+' ============================================================
+' RELACIONAMENTOS - HERANÇA E IMPLEMENTAÇÃO
+' ============================================================
+
+TriagemHandler <|.. TriagemBase
+
+TriagemBase <|-- TriagemEmergencial
+TriagemBase <|-- TriagemUrgente
+TriagemBase <|-- TriagemNormal
+TriagemBase <|-- TriagemBaixaPrioridade
+
+' ============================================================
+' RELACIONAMENTOS - ASSOCIAÇÃO E COMPOSIÇÃO
+' ============================================================
+
+TriagemBase o-right-> TriagemHandler : proximoHandler
+
+TriagemHandler ..> SolicitacaoAtendimento : <<usa>>
+TriagemHandler ..> PrioridadeAtendimento : <<retorna>>
+
+SolicitacaoAtendimento o--> "0..*" String : sintomas
+
+' ============================================================
+' NOTAS EXPLICATIVAS
+' ============================================================
+
+note right of TriagemHandler
+  Interface base do padrão
+  Chain of Responsibility.
+
+  Define o contrato para
+  todos os handlers.
+end note
+
+note left of TriagemBase
+  Implementa Template Method:
+
+  processarTriagem() define
+  o algoritmo geral:
+  1. podeProcessar()?
+  2. Sim → getPrioridade()
+  3. Não → proximoHandler
+
+  Hook methods delegados
+  para subclasses concretas.
+end note
+
+note bottom of TriagemEmergencial
+  Handler para casos CRÍTICOS:
+  • Veículo não liga
+  • Vazamento grave
+  • Freios não funcionam
+  • Direção travada
+  • Fogo/explosão
+
+  SLA: 2 horas
+  19 palavras-chave
+end note
+
+note bottom of TriagemUrgente
+  Handler para casos SÉRIOS:
+  • Check engine
+  • Barulhos no motor
+  • Superaquecimento
+  • Luzes de alerta
+  • Vibração anormal
+
+  SLA: 8 horas
+  23 palavras-chave
+end note
+
+note bottom of TriagemNormal
+  Handler para MANUTENÇÕES:
+  • Revisão periódica
+  • Troca de óleo
+  • Alinhamento
+  • Manutenção preventiva
+  • Inspeção
+
+  SLA: 24 horas
+  22 palavras-chave
+end note
+
+note bottom of TriagemBaixaPrioridade
+  Handler PADRÃO (catch-all):
+
+  Sempre retorna true em
+  podeProcessar().
+
+  Garante que toda solicitação
+  seja processada.
+
+  SLA: 72 horas
+end note
+
+note top of SolicitacaoAtendimento
+  Encapsula dados da solicitação.
+
+  Método helper contemSintoma()
+  facilita verificação pelos handlers.
+
+  Lista de sintomas é imutável
+  (Collections.unmodifiableList).
+end note
+
+note right of PrioridadeAtendimento
+  Enum com 4 níveis de prioridade.
+
+  Cada nível define:
+  • Descrição legível
+  • SLA (tempo máximo)
+  • Mensagem explicativa
+
+  Usado como retorno da triagem.
+end note
+
+' ============================================================
+' EXEMPLO DE FLUXO (CADEIA)
+' ============================================================
+
+note as N1
+  **Exemplo de Construção da Cadeia:**
+
+  TriagemHandler cadeia =
+    new TriagemEmergencial()
+      .setProximo(new TriagemUrgente())
+      .setProximo(new TriagemNormal())
+      .setProximo(new TriagemBaixaPrioridade());
+
+  **Fluxo de Processamento:**
+
+  Solicitação → [Emergencial]
+                     ↓ não processa
+                [Urgente]
+                     ↓ não processa
+                [Normal]
+                     ↓ PROCESSA ✓
+                Retorna: NORMAL
+
+  **Ordem importa:** Primeiro match vence!
+end note
+
+@enduml

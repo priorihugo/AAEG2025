@@ -1,0 +1,330 @@
+@startuml templatemethod-pattern
+
+' Configurações para aumentar limites do PlantUML
+skinparam maxMessageSize 200
+skinparam dpi 150
+skinparam classAttributeIconSize 0
+scale 1.2
+
+!define ABSTRACT_CLASS_COLOR #E8F5E9
+!define CONCRETE_CLASS_COLOR #BBDEFB
+!define MODEL_CLASS_COLOR #FFF9C4
+!define ENUM_COLOR #FFE0B2
+
+title Padrão Template Method - Sistema de Vistoria Veicular
+
+' ========== CLASSE ABSTRATA (TEMPLATE) ==========
+
+abstract class ProcessoVistoria <<Abstract>> ABSTRACT_CLASS_COLOR {
+  # String idVistoria
+  # String veiculo
+  # String cliente
+  # LocalDateTime dataHora
+  # List<ItemVistoria> itensVerificados
+  # String observacoes
+
+  __Construtor__
+  # ProcessoVistoria(veiculo, cliente)
+
+  __TEMPLATE METHOD (final)__
+  + {final} RelatorioVistoria executarVistoria()
+
+  __Métodos Concretos__
+  # void inicializar()
+  # void validarVistoria()
+  # RelatorioVistoria gerarRelatorioFinal()
+  # String gerarIdVistoria()
+  # void adicionarItem(...)
+
+  __Hooks Abstratos__
+  {abstract} # void registrarDadosIniciais()
+  {abstract} # void realizarInspecaoVisual()
+  {abstract} # void verificarItensEspecificos()
+  {abstract} # void coletarEvidencias()
+  {abstract} # void registrarObservacoes()
+  {abstract} # String getTipoVistoria()
+
+  __Hook Opcional__
+  # void executarChecklistAdicional()
+}
+
+note right of ProcessoVistoria::executarVistoria
+  TEMPLATE METHOD (FINAL)
+  =====================
+  1. inicializar()
+  2. registrarDadosIniciais()
+  3. realizarInspecaoVisual()
+  4. verificarItensEspecificos()
+  5. coletarEvidencias()
+  6. registrarObservacoes()
+  7. executarChecklistAdicional()
+  8. validarVistoria()
+  9. gerarRelatorioFinal()
+
+  Ordem GARANTIDA e IMUTÁVEL
+end note
+
+' ========== IMPLEMENTAÇÕES CONCRETAS ==========
+
+class VistoriaEntrada CONCRETE_CLASS_COLOR {
+  - int quilometragem
+  - int nivelCombustivel
+  - List<String> pertencesNoVeiculo
+  - String descricaoProblema
+
+  + VistoriaEntrada(veiculo, cliente, km, combustivel, problema)
+
+  __Implementação dos Hooks__
+  # void registrarDadosIniciais()
+  # void realizarInspecaoVisual()
+  # void verificarItensEspecificos()
+  # void coletarEvidencias()
+  # void registrarObservacoes()
+  # String getTipoVistoria()
+
+  __Métodos Auxiliares__
+  - void verificarLataria()
+  - void verificarIluminacao()
+  - void verificarPneus()
+  - void verificarAcessorios()
+  - void listarPertences()
+
+  + int getQuilometragem()
+  + int getNivelCombustivel()
+  + List<String> getPertencesNoVeiculo()
+}
+
+class VistoriaSaida CONCRETE_CLASS_COLOR {
+  - RelatorioVistoria vistoriaEntrada
+  - List<String> servicosExecutados
+  - boolean veiculoLavado
+  - boolean veiculoTestado
+
+  + VistoriaSaida(veiculo, cliente, vistoriaEntrada, servicos)
+
+  __Implementação dos Hooks__
+  # void registrarDadosIniciais()
+  # void realizarInspecaoVisual()
+  # void verificarItensEspecificos()
+  # void coletarEvidencias()
+  # void registrarObservacoes()
+  # String getTipoVistoria()
+
+  __Hook Opcional Implementado__
+  # void executarChecklistAdicional()
+
+  __Métodos Auxiliares__
+  - void compararComVistoriaEntrada()
+  - void validarServicosExecutados()
+  - void verificarLimpeza()
+  - void verificarProtecoesRemovidas()
+
+  + List<String> getServicosExecutados()
+  + RelatorioVistoria getVistoriaEntrada()
+  + boolean isVeiculoLavado()
+}
+
+class VistoriaDiagnostico CONCRETE_CLASS_COLOR {
+  - String problemaRelatado
+  - List<String> sintomasObservados
+  - List<String> hipoteses
+  - Map<String, String> testesRealizados
+  - String causaIdentificada
+  - String solucaoProposta
+
+  + VistoriaDiagnostico(veiculo, cliente, problema)
+
+  __Implementação dos Hooks__
+  # void registrarDadosIniciais()
+  # void realizarInspecaoVisual()
+  # void verificarItensEspecificos()
+  # void coletarEvidencias()
+  # void registrarObservacoes()
+  # String getTipoVistoria()
+
+  __Métodos Auxiliares__
+  - void analisarSintomas()
+  - void inspecionarSistemaFreios()
+  - void inspecionarMotor()
+  - void executarScannerDiagnostico()
+
+  + String getProblemaRelatado()
+  + String getCausaIdentificada()
+  + String getSolucaoProposta()
+}
+
+' ========== CLASSES DE MODELO ==========
+
+class RelatorioVistoria MODEL_CLASS_COLOR {
+  - String idVistoria
+  - String tipoVistoria
+  - String veiculo
+  - String cliente
+  - LocalDateTime dataHora
+  - List<ItemVistoria> itensVerificados
+  - String observacoes
+
+  + RelatorioVistoria(...)
+  + String getIdVistoria()
+  + String getTipoVistoria()
+  + int getTotalItens()
+  + List<ItemVistoria> getItensQueRequeremAtencao()
+  + boolean temProblemas()
+  + void exibir()
+}
+
+class ItemVistoria MODEL_CLASS_COLOR {
+  - TipoItemVistoria tipo
+  - String descricao
+  - CondicaoItem condicao
+  - String observacao
+  - LocalDateTime dataVerificacao
+
+  + ItemVistoria(tipo, descricao, condicao, observacao)
+  + ItemVistoria(tipo, descricao, condicao)
+  + boolean temObservacao()
+  + String toString()
+}
+
+enum TipoItemVistoria ENUM_COLOR {
+  LATARIA
+  ILUMINACAO
+  PNEUS
+  MOTOR
+  INTERIOR
+  ACESSORIOS
+  DOCUMENTOS
+  SISTEMAS_ELETRONICOS
+
+  - String nome
+  - String exemplos
+
+  + String getNome()
+  + String getExemplos()
+}
+
+enum CondicaoItem ENUM_COLOR {
+  PERFEITO
+  BOM
+  REGULAR
+  DANIFICADO
+  CRITICO
+  NAO_VERIFICADO
+
+  - String nome
+  - String descricao
+
+  + String getNome()
+  + String getDescricao()
+  + boolean requerAtencao()
+}
+
+' ========== RELACIONAMENTOS ==========
+
+ProcessoVistoria <|-- VistoriaEntrada : extends
+ProcessoVistoria <|-- VistoriaSaida : extends
+ProcessoVistoria <|-- VistoriaDiagnostico : extends
+
+ProcessoVistoria ..> RelatorioVistoria : creates
+ProcessoVistoria *-- ItemVistoria : contains
+
+RelatorioVistoria *-- ItemVistoria : contains
+ItemVistoria --> TipoItemVistoria : uses
+ItemVistoria --> CondicaoItem : uses
+
+VistoriaSaida --> RelatorioVistoria : references
+
+' ========== NOTAS EXPLICATIVAS ==========
+
+note as N1
+  PADRÃO TEMPLATE METHOD
+  ======================
+
+  PROPÓSITO:
+  Define o esqueleto de um algoritmo,
+  delegando passos específicos para
+  subclasses sem alterar a estrutura.
+
+  BENEFÍCIOS:
+  ✓ Elimina duplicação de código
+  ✓ Garante ordem de execução
+  ✓ Facilita manutenção
+  ✓ Permite customização controlada
+
+  HOLLYWOOD PRINCIPLE:
+  "Don't call us, we'll call you"
+
+  PRINCÍPIOS SOLID:
+  • Single Responsibility
+  • Open/Closed
+  • Liskov Substitution
+end note
+
+note as N2
+  FLUXO DE EXECUÇÃO
+  =================
+
+  executarVistoria() é FINAL
+  → Não pode ser sobrescrito
+  → Ordem garantida
+
+  Passos fixos (concretos):
+  • inicializar()
+  • validarVistoria()
+  • gerarRelatorioFinal()
+
+  Passos variáveis (abstratos):
+  • registrarDadosIniciais()
+  • realizarInspecaoVisual()
+  • verificarItensEspecificos()
+  • coletarEvidencias()
+  • registrarObservacoes()
+
+  Hook opcional:
+  • executarChecklistAdicional()
+    (apenas VistoriaSaida usa)
+end note
+
+note bottom of VistoriaEntrada
+  VISTORIA DE ENTRADA
+  ===================
+  Documentar estado inicial
+  do veículo para proteção
+  da oficina.
+
+  FOCO:
+  • Quilometragem atual
+  • Danos pré-existentes
+  • Pertences no veículo
+  • Nível de combustível
+end note
+
+note bottom of VistoriaSaida
+  VISTORIA DE SAÍDA
+  =================
+  Validar qualidade do
+  serviço executado.
+
+  FOCO:
+  • Comparar com entrada
+  • Validar serviços
+  • Checklist de entrega
+  • Teste de funcionamento
+
+  USA HOOK OPCIONAL!
+end note
+
+note bottom of VistoriaDiagnostico
+  VISTORIA DIAGNÓSTICA
+  ====================
+  Identificar causa raiz
+  do problema reportado.
+
+  FOCO:
+  • Scanner OBD2
+  • Testes técnicos
+  • Hipóteses e evidências
+  • Solução proposta
+end note
+
+@enduml

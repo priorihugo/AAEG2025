@@ -1,0 +1,209 @@
+@startuml Visitor Pattern - Geração de Documentos Fiscais
+
+title Padrão Visitor - Geração de Documentos para Atendimentos
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam packageStyle rectangle
+
+package "Elementos (Elements)" <<Frame>> {
+    abstract class Atendimento {
+        # id: String
+        # cliente: String
+        # veiculo: String
+        # dataHora: LocalDateTime
+        # descricao: String
+        # valorEstimado: Double
+        # estado: AtendimentoState
+        --
+        + {abstract} getTipo(): String
+        + {abstract} calcularValor(): void
+        + {abstract} accept(visitor: AtendimentoVisitor): String
+        + getId(): String
+        + getCliente(): String
+        + getVeiculo(): String
+        + getValorEstimado(): Double
+    }
+
+    class Diagnostico {
+        --
+        + getTipo(): String
+        + calcularValor(): void
+        + accept(visitor: AtendimentoVisitor): String
+    }
+
+    class ManutencaoCorretiva {
+        --
+        + getTipo(): String
+        + calcularValor(): void
+        + accept(visitor: AtendimentoVisitor): String
+    }
+
+    class ManutencaoPreventiva {
+        --
+        + getTipo(): String
+        + calcularValor(): void
+        + accept(visitor: AtendimentoVisitor): String
+    }
+
+    class Revisao {
+        --
+        + getTipo(): String
+        + calcularValor(): void
+        + accept(visitor: AtendimentoVisitor): String
+    }
+}
+
+package "Visitors" <<Frame>> {
+    interface AtendimentoVisitor <<interface>> {
+        + visit(diagnostico: Diagnostico): String
+        + visit(manutencaoCorretiva: ManutencaoCorretiva): String
+        + visit(manutencaoPreventiva: ManutencaoPreventiva): String
+        + visit(revisao: Revisao): String
+    }
+
+    class NotaFiscalVisitor {
+        - CNPJ_OFICINA: String
+        - RAZAO_SOCIAL: String
+        - INSCRICAO_ESTADUAL: String
+        - ALIQUOTA_ISSQN: double
+        --
+        - gerarCabecalhoNF(numeroNF: String): String
+        - gerarRodapeNF(valorServico: double): String
+        + visit(diagnostico: Diagnostico): String
+        + visit(manutencaoCorretiva: ManutencaoCorretiva): String
+        + visit(manutencaoPreventiva: ManutencaoPreventiva): String
+        + visit(revisao: Revisao): String
+    }
+
+    class OrcamentoDetalhadoVisitor {
+        - VALIDADE_DIAS: int
+        --
+        - gerarCabecalhoOrcamento(numeroOrcamento: String, cliente: String): String
+        - gerarRodapeOrcamento(valorServico: double): String
+        + visit(diagnostico: Diagnostico): String
+        + visit(manutencaoCorretiva: ManutencaoCorretiva): String
+        + visit(manutencaoPreventiva: ManutencaoPreventiva): String
+        + visit(revisao: Revisao): String
+    }
+
+    class ContratoServicoVisitor {
+        - RAZAO_SOCIAL: String
+        - CNPJ: String
+        - ENDERECO: String
+        --
+        - gerarCabecalhoContrato(numeroContrato: String): String
+        - gerarClausulasGerais(): String
+        - gerarRodapeContrato(cliente: String): String
+        + visit(diagnostico: Diagnostico): String
+        + visit(manutencaoCorretiva: ManutencaoCorretiva): String
+        + visit(manutencaoPreventiva: ManutencaoPreventiva): String
+        + visit(revisao: Revisao): String
+    }
+}
+
+package "Demo e Testes" <<Frame>> {
+    class VisitorDemo {
+        + {static} main(args: String[]): void
+        - {static} demonstrarVisitor(tipoDocumento: String, atendimento: Atendimento, visitor: AtendimentoVisitor): void
+        - {static} criarAtendimentos(): List<Atendimento>
+        - {static} aguardar(milissegundos: int): void
+    }
+
+    class VisitorTest {
+        - diagnostico: Diagnostico
+        - manutencaoCorretiva: ManutencaoCorretiva
+        - manutencaoPreventiva: ManutencaoPreventiva
+        - revisao: Revisao
+        --
+        + setUp(): void
+        + deveGerarNotaFiscalParaDiagnostico(): void
+        + deveGerarOrcamentoDetalhadoParaDiagnostico(): void
+        + deveGerarContratoServicoParaDiagnostico(): void
+        + devePermitirUsarDiferentesVisitorsNoMesmoAtendimento(): void
+    }
+}
+
+' Relacionamentos - Hierarquia de Atendimentos
+Atendimento <|-- Diagnostico
+Atendimento <|-- ManutencaoCorretiva
+Atendimento <|-- ManutencaoPreventiva
+Atendimento <|-- Revisao
+
+' Relacionamentos - Implementação da interface Visitor
+AtendimentoVisitor <|.. NotaFiscalVisitor
+AtendimentoVisitor <|.. OrcamentoDetalhadoVisitor
+AtendimentoVisitor <|.. ContratoServicoVisitor
+
+' Relacionamentos - Accept chama Visitor
+Atendimento ..> AtendimentoVisitor : "accept()"
+Diagnostico ..> AtendimentoVisitor : "calls visit()"
+ManutencaoCorretiva ..> AtendimentoVisitor : "calls visit()"
+ManutencaoPreventiva ..> AtendimentoVisitor : "calls visit()"
+Revisao ..> AtendimentoVisitor : "calls visit()"
+
+' Relacionamentos - Visitors visitam elementos
+NotaFiscalVisitor ..> Diagnostico : "visit"
+NotaFiscalVisitor ..> ManutencaoCorretiva : "visit"
+NotaFiscalVisitor ..> ManutencaoPreventiva : "visit"
+NotaFiscalVisitor ..> Revisao : "visit"
+
+OrcamentoDetalhadoVisitor ..> Diagnostico : "visit"
+OrcamentoDetalhadoVisitor ..> ManutencaoCorretiva : "visit"
+OrcamentoDetalhadoVisitor ..> ManutencaoPreventiva : "visit"
+OrcamentoDetalhadoVisitor ..> Revisao : "visit"
+
+ContratoServicoVisitor ..> Diagnostico : "visit"
+ContratoServicoVisitor ..> ManutencaoCorretiva : "visit"
+ContratoServicoVisitor ..> ManutencaoPreventiva : "visit"
+ContratoServicoVisitor ..> Revisao : "visit"
+
+' Relacionamentos - Demo e Testes
+VisitorDemo ..> Atendimento : "uses"
+VisitorDemo ..> AtendimentoVisitor : "uses"
+VisitorTest ..> Atendimento : "tests"
+VisitorTest ..> AtendimentoVisitor : "tests"
+
+note right of AtendimentoVisitor
+  Interface Visitor define métodos
+  visit() para cada tipo de elemento.
+  Cada Visitor implementa uma operação
+  diferente (Nota Fiscal, Orçamento,
+  Contrato).
+end note
+
+note left of Atendimento
+  Elemento abstrato com método
+  accept() que recebe o Visitor.
+  Cada classe concreta implementa
+  accept() chamando visitor.visit(this).
+end note
+
+note bottom of NotaFiscalVisitor
+  Gera nota fiscal completa com:
+  - Cabeçalho oficial
+  - Dados do prestador e tomador
+  - Descrição dos serviços
+  - Cálculo de impostos (ISSQN)
+  - Rodapé com valores
+end note
+
+note bottom of OrcamentoDetalhadoVisitor
+  Gera orçamento detalhado com:
+  - Validade de 15 dias
+  - Procedimentos inclusos
+  - Detalhamento de custos
+  - Formas de pagamento
+  - Tempo estimado
+end note
+
+note bottom of ContratoServicoVisitor
+  Gera contrato de serviço com:
+  - Partes contratantes
+  - Cláusulas legais completas
+  - Escopo detalhado do serviço
+  - Garantias e obrigações
+  - Espaço para assinaturas
+end note
+
+@enduml

@@ -1,5 +1,7 @@
 package org.example.model;
 
+import org.example.padroescomportamentais.visitor.AtendimentoVisitor;
+
 public class ManutencaoPreventiva extends Atendimento {
 
     public ManutencaoPreventiva(String id, String cliente, String veiculo, String descricao) {
@@ -15,5 +17,10 @@ public class ManutencaoPreventiva extends Atendimento {
     @Override
     public void calcularValor() {
         this.valorEstimado = 250.00;
+    }
+
+    @Override
+    public String accept(AtendimentoVisitor visitor) {
+        return visitor.visit(this);
     }
 }

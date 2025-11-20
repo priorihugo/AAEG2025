@@ -3,6 +3,7 @@ package org.example.model;
 import java.time.LocalDateTime;
 import org.example.padroescomportamentais.state.AtendimentoState;
 import org.example.padroescomportamentais.state.StateManager;
+import org.example.padroescomportamentais.visitor.AtendimentoVisitor;
 
 public abstract class Atendimento {
     protected String id;
@@ -26,6 +27,7 @@ public abstract class Atendimento {
 
     public abstract String getTipo();
     public abstract void calcularValor();
+    public abstract String accept(AtendimentoVisitor visitor);
 
     public String getId() {
         return id;

@@ -245,4 +245,202 @@ public class RelatorioVistoria {
         return String.format("RelatorioVistoria[%s - %s - %s - %d itens]",
                 idVistoria, tipoVistoria, veiculo, getTotalItens());
     }
+
+    /**
+     * Método factory para criar uma instância do Builder.
+     *
+     * @return nova instância do Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Padrão Builder para RelatorioVistoria.
+     *
+     * Permite construção fluente e incremental de relatórios de vistoria,
+     * especialmente útil para adicionar items progressivamente e em testes.
+     *
+     * Exemplo de uso:
+     * <pre>
+     * RelatorioVistoria relatorio = RelatorioVistoria.builder()
+     *     .idVistoria("VISTORIA-001")
+     *     .tipoVistoria("VISTORIA DE ENTRADA")
+     *     .veiculo("Honda Civic 2018")
+     *     .cliente("João Silva")
+     *     .dataHora(LocalDateTime.now())
+     *     .adicionarItem(new ItemVistoria(...))
+     *     .observacoes("Observações gerais")
+     *     .build();
+     * </pre>
+     */
+    public static class Builder {
+        private String idVistoria;
+        private String tipoVistoria;
+        private String veiculo;
+        private String cliente;
+        private LocalDateTime dataHora;
+        private List<ItemVistoria> itensVerificados = new ArrayList<>();
+        private String observacoes = "";
+
+        /**
+         * Construtor padrão do Builder.
+         */
+        public Builder() {
+        }
+
+        /**
+         * Define o ID da vistoria.
+         *
+         * @param idVistoria identificador único da vistoria
+         * @return esta instância do Builder
+         */
+        public Builder idVistoria(String idVistoria) {
+            this.idVistoria = idVistoria != null ? idVistoria.trim() : null;
+            return this;
+        }
+
+        /**
+         * Define o tipo da vistoria.
+         *
+         * @param tipoVistoria tipo da vistoria realizada
+         * @return esta instância do Builder
+         */
+        public Builder tipoVistoria(String tipoVistoria) {
+            this.tipoVistoria = tipoVistoria != null ? tipoVistoria.trim() : null;
+            return this;
+        }
+
+        /**
+         * Define a descrição do veículo.
+         *
+         * @param veiculo descrição do veículo
+         * @return esta instância do Builder
+         */
+        public Builder veiculo(String veiculo) {
+            this.veiculo = veiculo != null ? veiculo.trim() : null;
+            return this;
+        }
+
+        /**
+         * Define o nome do cliente.
+         *
+         * @param cliente nome do cliente
+         * @return esta instância do Builder
+         */
+        public Builder cliente(String cliente) {
+            this.cliente = cliente != null ? cliente.trim() : null;
+            return this;
+        }
+
+        /**
+         * Define a data e hora da vistoria.
+         *
+         * @param dataHora data e hora da vistoria
+         * @return esta instância do Builder
+         */
+        public Builder dataHora(LocalDateTime dataHora) {
+            this.dataHora = dataHora;
+            return this;
+        }
+
+        /**
+         * Substitui completamente a lista de itens verificados.
+         *
+         * @param itens lista de itens verificados
+         * @return esta instância do Builder
+         */
+        public Builder itensVerificados(List<ItemVistoria> itens) {
+            if (itens != null) {
+                this.itensVerificados = new ArrayList<>(itens);
+            } else {
+                this.itensVerificados = new ArrayList<>();
+            }
+            return this;
+        }
+
+        /**
+         * Adiciona um item individual à lista de itens verificados.
+         *
+         * @param item item a ser adicionado
+         * @return esta instância do Builder
+         */
+        public Builder adicionarItem(ItemVistoria item) {
+            if (item != null) {
+                this.itensVerificados.add(item);
+            }
+            return this;
+        }
+
+        /**
+         * Adiciona múltiplos itens à lista de itens verificados.
+         *
+         * @param itens lista de itens a serem adicionados
+         * @return esta instância do Builder
+         */
+        public Builder adicionarItens(List<ItemVistoria> itens) {
+            if (itens != null) {
+                this.itensVerificados.addAll(itens);
+            }
+            return this;
+        }
+
+        /**
+         * Limpa a lista de itens verificados.
+         *
+         * @return esta instância do Builder
+         */
+        public Builder limparItens() {
+            this.itensVerificados.clear();
+            return this;
+        }
+
+        /**
+         * Define as observações gerais.
+         *
+         * @param observacoes observações gerais
+         * @return esta instância do Builder
+         */
+        public Builder observacoes(String observacoes) {
+            this.observacoes = observacoes != null ? observacoes.trim() : "";
+            return this;
+        }
+
+        /**
+         * Constrói a instância de RelatorioVistoria.
+         *
+         * Valida que todos os campos obrigatórios foram fornecidos
+         * antes de criar a instância.
+         *
+         * @return nova instância de RelatorioVistoria
+         * @throws IllegalArgumentException se algum campo obrigatório estiver ausente ou inválido
+         */
+        public RelatorioVistoria build() {
+            if (idVistoria == null || idVistoria.isEmpty()) {
+                throw new IllegalArgumentException("ID da vistoria não pode ser vazio");
+            }
+            if (tipoVistoria == null || tipoVistoria.isEmpty()) {
+                throw new IllegalArgumentException("Tipo da vistoria não pode ser vazio");
+            }
+            if (veiculo == null || veiculo.isEmpty()) {
+                throw new IllegalArgumentException("Veículo não pode ser vazio");
+            }
+            if (cliente == null || cliente.isEmpty()) {
+                throw new IllegalArgumentException("Cliente não pode ser vazio");
+            }
+            if (dataHora == null) {
+                throw new IllegalArgumentException("Data/hora não pode ser null");
+            }
+
+            return new RelatorioVistoria(
+                    idVistoria,
+                    tipoVistoria,
+                    veiculo,
+                    cliente,
+                    dataHora,
+                    itensVerificados,
+                    observacoes
+            );
+        }
+    }
 }

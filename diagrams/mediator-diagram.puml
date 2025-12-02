@@ -1,0 +1,325 @@
+@startuml mediator-diagram
+
+title Padrão Mediator - Sistema de Comunicação entre Departamentos da Oficina
+
+' ============================================================
+' INTERFACE MEDIATOR
+' ============================================================
+
+interface MediadorOficina {
+    +notificar(remetente: Departamento, mensagem: String, destinatario: String): void
+    +broadcast(remetente: Departamento, mensagem: String): void
+    +registrarDepartamento(nome: String, departamento: Departamento): void
+}
+
+' ============================================================
+' MEDIATOR CONCRETO
+' ============================================================
+
+class CentralComunicacao {
+    -departamentos: Map<String, Departamento>
+
+    +CentralComunicacao()
+    +registrarDepartamento(nome: String, departamento: Departamento): void
+    +notificar(remetente: Departamento, mensagem: String, destinatario: String): void
+    +broadcast(remetente: Departamento, mensagem: String): void
+    +getTotalDepartamentos(): int
+}
+
+' ============================================================
+' COLLEAGUE ABSTRATO
+' ============================================================
+
+abstract class Departamento {
+    #mediador: MediadorOficina
+    #nome: String
+
+    +Departamento(mediador: MediadorOficina, nome: String)
+    +getNome(): String
+    +enviarMensagem(mensagem: String, destinatario: String): void
+    +enviarBroadcast(mensagem: String): void
+    +{abstract} receberMensagem(remetente: String, mensagem: String): void
+}
+
+' ============================================================
+' COLLEAGUES CONCRETOS
+' ============================================================
+
+class Recepcao {
+    +Recepcao(mediador: MediadorOficina)
+    +receberMensagem(remetente: String, mensagem: String): void
+    +agendarAtendimento(idAtendimento: String, cliente: String, servico: String): void
+    +confirmarEntrega(idAtendimento: String): void
+}
+
+class Oficina {
+    +Oficina(mediador: MediadorOficina)
+    +receberMensagem(remetente: String, mensagem: String): void
+    +solicitarPecas(idAtendimento: String, descricaoPecas: String): void
+    +concluirServico(idAtendimento: String, valor: double): void
+    +reportarProblema(idAtendimento: String, problema: String): void
+}
+
+class EstoquePecas {
+    -estoque: Map<String, Integer>
+
+    +EstoquePecas(mediador: MediadorOficina)
+    +receberMensagem(remetente: String, mensagem: String): void
+    +adicionarPeca(peca: String, quantidade: int): void
+    +getQuantidadeEmEstoque(peca: String): int
+    -inicializarEstoque(): void
+    -extrairPecaDaMensagem(mensagem: String): String
+    -verificarDisponibilidade(peca: String, solicitante: String): void
+}
+
+class Financeiro {
+    -{static} TAXA_ISSQN: double = 0.05
+
+    +Financeiro(mediador: MediadorOficina)
+    +receberMensagem(remetente: String, mensagem: String): void
+    +emitirRelatorioFinanceiro(): void
+    -extrairIdAtendimento(mensagem: String): String
+    -extrairValor(mensagem: String): double
+    -processarPagamento(idAtendimento: String, valor: double): void
+}
+
+' ============================================================
+' RELACIONAMENTOS - IMPLEMENTAÇÃO E HERANÇA
+' ============================================================
+
+MediadorOficina <|.. CentralComunicacao
+
+Departamento <|-- Recepcao
+Departamento <|-- Oficina
+Departamento <|-- EstoquePecas
+Departamento <|-- Financeiro
+
+' ============================================================
+' RELACIONAMENTOS - ASSOCIAÇÃO
+' ============================================================
+
+Departamento --> MediadorOficina : mediador
+
+CentralComunicacao o--> "0..*" Departamento : departamentos
+
+' ============================================================
+' NOTAS EXPLICATIVAS
+' ============================================================
+
+note right of MediadorOficina
+  Interface MEDIATOR.
+
+  Define o contrato para comunicação
+  centralizada entre departamentos.
+
+  Métodos:
+  • notificar() - mensagem 1-para-1
+  • broadcast() - mensagem 1-para-todos
+  • registrarDepartamento() - adiciona colleague
+end note
+
+note left of CentralComunicacao
+  MEDIATOR CONCRETO.
+
+  Responsabilidades:
+  • Manter registro de todos os departamentos
+  • Rotear mensagens entre departamentos
+  • Coordenar broadcasts
+  • Validar destinatários
+
+  Encapsula toda a lógica de
+  comunicação complexa.
+end note
+
+note top of Departamento
+  COLLEAGUE ABSTRATO.
+
+  • Mantém referência ao mediador
+  • Se auto-registra no construtor
+  • Define métodos de envio
+  • Declara receberMensagem() abstrato
+
+  Colleagues NUNCA se comunicam
+  diretamente entre si.
+end note
+
+note bottom of Recepcao
+  COLLEAGUE: Recepção
+
+  Responsabilidades:
+  • Agendar novos atendimentos
+  • Notificar oficina sobre agendamentos
+  • Receber confirmações de pagamento
+  • Confirmar entrega de veículos
+  • Comunicar atrasos aos clientes
+
+  Fluxos:
+  Recepção → Oficina (novo atendimento)
+  Financeiro → Recepção (pagamento OK)
+end note
+
+note bottom of Oficina
+  COLLEAGUE: Oficina
+
+  Responsabilidades:
+  • Receber notificações de atendimentos
+  • Solicitar peças ao estoque
+  • Executar serviços
+  • Notificar conclusão ao financeiro
+  • Reportar problemas à recepção
+
+  Fluxos:
+  Oficina → EstoquePecas (solicitar peças)
+  Oficina → Financeiro (serviço concluído)
+  Oficina → Recepção (problemas)
+end note
+
+note bottom of EstoquePecas
+  COLLEAGUE: Estoque de Peças
+
+  Responsabilidades:
+  • Gerenciar inventário de peças
+  • Verificar disponibilidade
+  • Confirmar/negar solicitações
+  • Reservar peças para atendimentos
+  • Notificar chegada de peças
+
+  Fluxos:
+  EstoquePecas → Oficina (disponibilidade)
+
+  Mantém estado interno do estoque.
+end note
+
+note bottom of Financeiro
+  COLLEAGUE: Financeiro
+
+  Responsabilidades:
+  • Processar pagamentos
+  • Calcular impostos (ISSQN 5%)
+  • Emitir notas fiscais
+  • Notificar recepção sobre pagamentos
+  • Gerar relatórios financeiros
+
+  Fluxos:
+  Financeiro → Recepção (pagamento confirmado)
+end note
+
+' ============================================================
+' FLUXO DE COMUNICAÇÃO
+' ============================================================
+
+note as N1
+  **Exemplo de Fluxo: Atendimento Completo**
+
+  1. Recepção agenda atendimento
+     Recepção → [Central] → Oficina
+     "Novo atendimento AT-001 para João Silva"
+
+  2. Oficina solicita peças
+     Oficina → [Central] → EstoquePecas
+     "Solicito pastilhas de freio para AT-001"
+
+  3. Estoque confirma disponibilidade
+     EstoquePecas → [Central] → Oficina
+     "Peças disponíveis e reservadas"
+
+  4. Oficina conclui serviço
+     Oficina → [Central] → Financeiro
+     "Serviço AT-001 concluído - R$ 450,00"
+
+  5. Financeiro processa pagamento
+     Financeiro → [Central] → Recepção
+     "Pagamento AT-001 confirmado"
+
+  6. Recepção confirma entrega
+     Recepção → [Central] → TODOS
+     "Atendimento AT-001 finalizado"
+end note
+
+' ============================================================
+' EXEMPLO DE USO
+' ============================================================
+
+note as N2
+  **Exemplo de Código:**
+
+  // Criar mediador central
+  MediadorOficina central = new CentralComunicacao();
+
+  // Criar departamentos (auto-registram no mediador)
+  Recepcao recepcao = new Recepcao(central);
+  Oficina oficina = new Oficina(central);
+  EstoquePecas estoque = new EstoquePecas(central);
+  Financeiro financeiro = new Financeiro(central);
+
+  // Departamentos se comunicam via mediador
+  recepcao.agendarAtendimento(
+    "AT-001", "João Silva", "Troca de freios"
+  );
+
+  oficina.solicitarPecas("AT-001", "pastilhas de freio");
+
+  oficina.concluirServico("AT-001", 450.00);
+
+  recepcao.confirmarEntrega("AT-001");
+
+  **Observação:**
+  Nenhum departamento conhece ou referencia
+  outros departamentos diretamente!
+end note
+
+' ============================================================
+' PRINCÍPIOS SOLID APLICADOS
+' ============================================================
+
+note as N3
+  **Princípios SOLID no Mediator:**
+
+  **S** - Single Responsibility:
+    Cada departamento tem responsabilidade única
+    Mediador centraliza apenas comunicação
+
+  **O** - Open/Closed:
+    Fácil adicionar novos departamentos
+    Sem modificar código existente
+
+  **L** - Liskov Substitution:
+    Todos os Departamentos são substituíveis
+    via classe abstrata Departamento
+
+  **I** - Interface Segregation:
+    Interface coesa do mediador
+    Departamentos têm responsabilidades específicas
+
+  **D** - Dependency Inversion:
+    Departamentos dependem de MediadorOficina
+    (abstração), não de implementação concreta
+end note
+
+' ============================================================
+' BENEFÍCIOS E TRADE-OFFS
+' ============================================================
+
+note as N4
+  **Benefícios do Padrão Mediator:**
+
+  ✓ Reduz acoplamento entre componentes
+  ✓ Centraliza lógica de controle complexa
+  ✓ Simplifica comunicação many-to-many
+  ✓ Facilita manutenção e evolução
+  ✓ Melhora reusabilidade de components
+  ✓ Suporta comunicação 1-1 e broadcast
+
+  **Trade-offs:**
+
+  ⚠ Mediador pode se tornar "God Object"
+  ⚠ Pode ser complexo em sistemas pequenos
+  ⚠ Ponto único de falha (mitigável)
+
+  **Quando Usar:**
+  • Comunicação complexa entre múltiplos objetos
+  • Reduzir dependências diretas
+  • Reutilizar objetos em diferentes contextos
+end note
+
+@enduml

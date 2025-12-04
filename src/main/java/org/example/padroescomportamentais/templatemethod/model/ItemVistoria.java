@@ -1,5 +1,7 @@
 package org.example.padroescomportamentais.templatemethod.model;
 
+import org.example.padroescriacao.prototype.IPrototype;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -9,7 +11,7 @@ import java.time.format.DateTimeFormatter;
  * Representa um item individual verificado durante o processo de vistoria.
  * Cada item possui tipo, descrição, condição e observações opcionais.
  */
-public class ItemVistoria {
+public class ItemVistoria implements IPrototype<ItemVistoria> {
 
     private final TipoItemVistoria tipo;
     private final String descricao;
@@ -52,6 +54,35 @@ public class ItemVistoria {
      */
     public ItemVistoria(TipoItemVistoria tipo, String descricao, CondicaoItem condicao) {
         this(tipo, descricao, condicao, null);
+    }
+
+    /**
+     * Construtor de cópia para clonagem.
+     * Package-private para uso interno do padrão Prototype.
+     *
+     * @param outro item a ser copiado
+     */
+    ItemVistoria(ItemVistoria outro) {
+        if (outro == null) {
+            throw new IllegalArgumentException("Item a ser copiado não pode ser null");
+        }
+
+        this.tipo = outro.tipo;
+        this.descricao = outro.descricao;
+        this.condicao = outro.condicao;
+        this.observacao = outro.observacao;
+        this.dataVerificacao = outro.dataVerificacao;
+    }
+
+    /**
+     * Cria uma cópia profunda deste item de vistoria.
+     * Implementação do padrão Prototype.
+     *
+     * @return nova instância de ItemVistoria com os mesmos valores
+     */
+    @Override
+    public ItemVistoria clonar() {
+        return new ItemVistoria(this);
     }
 
     /**

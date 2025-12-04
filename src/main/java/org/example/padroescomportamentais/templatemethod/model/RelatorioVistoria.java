@@ -1,11 +1,14 @@
 package org.example.padroescomportamentais.templatemethod.model;
 
+import org.example.padroescriacao.prototype.IPrototype;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -14,7 +17,7 @@ import java.util.stream.Collectors;
  * Consolida todos os dados coletados durante o processo de vistoria.
  * Fornece métodos para exibição formatada e análise dos itens verificados.
  */
-public class RelatorioVistoria {
+public class RelatorioVistoria implements IPrototype<RelatorioVistoria> {
 
     private final String idVistoria;
     private final String tipoVistoria;
@@ -64,6 +67,31 @@ public class RelatorioVistoria {
         this.dataHora = dataHora;
         this.itensVerificados = new ArrayList<>(itensVerificados);
         this.observacoes = observacoes != null ? observacoes.trim() : "";
+    }
+
+    /**
+     * Construtor de cópia para clonagem.
+     * Package-private para uso interno do padrão Prototype.
+     *
+     * @param outro relatório a ser copiado
+     */
+    RelatorioVistoria(RelatorioVistoria outro) {
+        if (outro == null) {
+            throw new IllegalArgumentException("Relatório a ser copiado não pode ser null");
+        }
+
+        this.idVistoria = outro.idVistoria;
+        this.tipoVistoria = outro.tipoVistoria;
+        this.veiculo = outro.veiculo;
+        this.cliente = outro.cliente;
+        this.dataHora = outro.dataHora;
+        this.observacoes = outro.observacoes;
+
+        // Deep copy da lista de itens
+        this.itensVerificados = new ArrayList<>(outro.itensVerificados.size());
+        for (ItemVistoria item : outro.itensVerificados) {
+            this.itensVerificados.add(item.clonar());
+        }
     }
 
     /**
@@ -166,6 +194,34 @@ public class RelatorioVistoria {
      */
     public boolean temProblemas() {
         return !getItensQueRequeremAtencao().isEmpty();
+    }
+
+    /**
+     * Cria uma cópia profunda deste relatório de vistoria.
+     * Implementação do padrão Prototype.
+     *
+     * @return nova instância de RelatorioVistoria com os mesmos valores
+     */
+    @Override
+    public RelatorioVistoria clonar() {
+        return new RelatorioVistoria(this);
+    }
+
+    /**
+     * Cria uma cópia do relatório aplicando modificações através do Builder.
+     *
+     * @param modificador função que recebe o Builder e aplica modificações
+     * @return nova instância de RelatorioVistoria com as modificações aplicadas
+     * @throws IllegalArgumentException se modificador for null
+     */
+    public RelatorioVistoria clonarComModificacoes(Consumer<Builder> modificador) {
+        if (modificador == null) {
+            throw new IllegalArgumentException("Modificador não pode ser null");
+        }
+
+        Builder builder = Builder.apartirDe(this);
+        modificador.accept(builder);
+        return builder.build();
     }
 
     /**
@@ -287,6 +343,29 @@ public class RelatorioVistoria {
          * Construtor padrão do Builder.
          */
         public Builder() {
+        }
+
+        /**
+         * Cria um Builder a partir de uma instância existente de RelatorioVistoria.
+         * Útil para criar variações de relatórios existentes.
+         *
+         * @param original relatório original a ser usado como base
+         * @return Builder preenchido com dados do relatório original
+         * @throws IllegalArgumentException se original for null
+         */
+        static Builder apartirDe(RelatorioVistoria original) {
+            if (original == null) {
+                throw new IllegalArgumentException("Relatório original não pode ser null");
+            }
+
+            return new Builder()
+                    .idVistoria(original.idVistoria)
+                    .tipoVistoria(original.tipoVistoria)
+                    .veiculo(original.veiculo)
+                    .cliente(original.cliente)
+                    .dataHora(original.dataHora)
+                    .itensVerificados(new ArrayList<>(original.itensVerificados))
+                    .observacoes(original.observacoes);
         }
 
         /**

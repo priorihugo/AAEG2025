@@ -1,9 +1,23 @@
 package org.example.padroescriacao.singleton;
 
+/**
+ * Singleton com Eager Initialization (Inicialização Antecipada)
+ *
+ * CARACTERÍSTICAS:
+ * - Eager: Instância criada no carregamento da classe
+ * - Thread-safe: Garantido pela JVM (inicialização estática é thread-safe)
+ * - Simples: Implementação mais direta do padrão
+ *
+ * QUANDO USAR:
+ * - Quando a instância sempre será utilizada
+ * - Quando o custo de criação é baixo
+ * - Para fins educacionais (implementação básica)
+ */
 public class ConfiguracaoOficina {
 
     private ConfiguracaoOficina() {}
 
+    // Eager initialization: criada no carregamento da classe
     private static ConfiguracaoOficina instance = new ConfiguracaoOficina();
 
     public static ConfiguracaoOficina getInstance() {

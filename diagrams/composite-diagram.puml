@@ -1,0 +1,184 @@
+@startuml Composite Pattern - Sistema de Oficina
+
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+skinparam backgroundColor #FEFEFE
+skinparam class {
+    BackgroundColor<<interface>> LightBlue
+    BackgroundColor<<leaf>> PaleGreen
+    BackgroundColor<<composite>> LightYellow
+    BackgroundColor<<factory>> LightCoral
+    BorderColor Black
+    ArrowColor Black
+}
+
+title Padrão Composite - Pacotes de Serviços da Oficina Mecânica
+
+package "Padrão Factory (Existente)" {
+    interface IServico <<interface>> {
+        + executar(): String
+        + cancelar(): String
+        + getValorServico(): Double
+    }
+}
+
+package "Serviços Simples (Leafs)" {
+    class ServicoDiagnostico <<leaf>> {
+        + executar(): String
+        + cancelar(): String
+        + getValorServico(): Double
+    }
+
+    class ServicoRevisao <<leaf>> {
+        + executar(): String
+        + cancelar(): String
+        + getValorServico(): Double
+    }
+
+    class ServicoManutencaoPreventiva <<leaf>> {
+        + executar(): String
+        + cancelar(): String
+        + getValorServico(): Double
+    }
+
+    class ServicoManutencaoCorretiva <<leaf>> {
+        + executar(): String
+        + cancelar(): String
+        + getValorServico(): Double
+    }
+}
+
+package "Padrão Composite (Novo)" {
+    class ServicoComposto <<composite>> {
+        - nome: String
+        - descricao: String
+        - componentes: List<IServico>
+
+        + ServicoComposto(nome: String, descricao: String)
+        + adicionarServico(servico: IServico): void
+        + removerServico(servico: IServico): void
+        + getComponentes(): List<IServico>
+        + getQuantidadeComponentes(): int
+        + executar(): String
+        + cancelar(): String
+        + getValorServico(): Double
+        + getNome(): String
+        + getDescricao(): String
+        - validarCiclo(servico: IServico): void
+        - contemCiclo(servico: IServico, visitados: Set<IServico>): boolean
+    }
+
+    class ServicoCompostoFactory <<factory>> {
+        + {static} criarRevisaoCompleta(): ServicoComposto
+        + {static} criarManutencaoTotal(): ServicoComposto
+        + {static} criarCheckupBasico(): ServicoComposto
+        + {static} criarServicoPremium(): ServicoComposto
+        + {static} criarPacotePersonalizado(nome: String, descricao: String): ServicoComposto
+    }
+}
+
+' Relacionamentos
+IServico <|.. ServicoDiagnostico
+IServico <|.. ServicoRevisao
+IServico <|.. ServicoManutencaoPreventiva
+IServico <|.. ServicoManutencaoCorretiva
+IServico <|.. ServicoComposto
+
+ServicoComposto o--> "0..*" IServico : componentes
+
+ServicoCompostoFactory ..> ServicoComposto : <<creates>>
+ServicoCompostoFactory ..> IServico : <<uses>>
+
+' Notas explicativas
+note right of IServico
+  <b>Component</b>
+  Interface comum que define
+  operações para folhas e
+  composites. Permite tratamento
+  uniforme de serviços simples
+  e pacotes.
+end note
+
+note right of ServicoComposto
+  <b>Composite</b>
+
+  Gerencia lista de IServico.
+  Implementa operações recursivas:
+
+  • <b>getValorServico()</b>: soma
+    recursiva de todos os componentes
+
+  • <b>executar()</b> e <b>cancelar()</b>:
+    operação em todos os filhos
+
+  • <b>validarCiclo()</b>: protege
+    contra referências circulares
+    (A → B → A é bloqueado)
+
+  Permite composição aninhada:
+  pacotes dentro de pacotes
+  com profundidade arbitrária.
+end note
+
+note right of ServicoDiagnostico
+  <b>Leafs</b>
+
+  Serviços simples que não
+  contêm outros serviços.
+  Implementação direta de IServico.
+
+  Valores fixos:
+  • Diagnóstico: R$ 150
+  • Revisão: R$ 350
+  • Manutenção Preventiva: R$ 250
+  • Manutenção Corretiva: R$ 450
+end note
+
+note bottom of ServicoCompostoFactory
+  <b>Factory de Composites</b>
+
+  Cria pacotes pré-definidos:
+
+  • <b>Revisão Completa</b> (R$ 400)
+    Diagnóstico + Manutenção Preventiva
+
+  • <b>Check-up Básico</b> (R$ 500)
+    Diagnóstico + Revisão
+
+  • <b>Manutenção Total</b> (R$ 950)
+    Diagnóstico + Corretiva + Revisão
+
+  • <b>Serviço Premium</b> (R$ 1200)
+    Todos os 4 serviços
+end note
+
+' Exemplo de uso
+note as N1
+  <b>Exemplo de Uso - Composição Aninhada</b>
+
+  ServicoComposto pacoteBasico = new ServicoComposto("Básico", "...");
+  pacoteBasico.adicionarServico(new ServicoDiagnostico());
+  pacoteBasico.adicionarServico(new ServicoRevisao());
+  // Valor: 150 + 350 = 500
+
+  ServicoComposto pacoteCompleto = new ServicoComposto("Completo", "...");
+  pacoteCompleto.adicionarServico(pacoteBasico);  // Composite dentro de Composite
+  pacoteCompleto.adicionarServico(new ServicoManutencaoCorretiva());
+  // Valor recursivo: 500 + 450 = 950
+
+  pacoteCompleto.executar();  // Executa todos recursivamente
+end note
+
+' Integração com Decorator
+note as N2
+  <b>Integração com Decorator Pattern</b>
+
+  ServicoComposto pacote = criarRevisaoCompleta();
+  IServico decorado = new GarantiaEstendidaDecorator(pacote, 24);
+
+  // Decorator funciona transparentemente
+  // com serviços simples e compostos
+  // Valor: 400 (pacote) + 180 (garantia) = 580
+end note
+
+@enduml

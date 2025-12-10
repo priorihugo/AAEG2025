@@ -1,0 +1,304 @@
+@startuml prototype-diagram
+
+title Padrão Prototype - Sistema de Clonagem de Relatórios de Vistoria
+
+' ============================================================
+' INTERFACE PROTOTYPE
+' ============================================================
+
+interface IPrototype<T> {
+    +clonar(): T
+}
+
+' ============================================================
+' ITEM VISTORIA (IMPLEMENTA PROTOTYPE)
+' ============================================================
+
+class ItemVistoria {
+    -tipo: TipoItemVistoria
+    -descricao: String
+    -condicao: CondicaoItem
+    -observacao: String
+    -dataVerificacao: LocalDateTime
+
+    +ItemVistoria(tipo: TipoItemVistoria, descricao: String, condicao: CondicaoItem, observacao: String)
+    +ItemVistoria(tipo: TipoItemVistoria, descricao: String, condicao: CondicaoItem)
+    ~ItemVistoria(outro: ItemVistoria)
+    +clonar(): ItemVistoria
+    +getTipo(): TipoItemVistoria
+    +getDescricao(): String
+    +getCondicao(): CondicaoItem
+    +getObservacao(): String
+    +getDataVerificacao(): LocalDateTime
+    +temObservacao(): boolean
+    +toString(): String
+}
+
+' ============================================================
+' RELATORIO VISTORIA (IMPLEMENTA PROTOTYPE)
+' ============================================================
+
+class RelatorioVistoria {
+    -idVistoria: String
+    -tipoVistoria: String
+    -veiculo: String
+    -cliente: String
+    -dataHora: LocalDateTime
+    -itensVerificados: List<ItemVistoria>
+    -observacoes: String
+
+    +RelatorioVistoria(idVistoria: String, tipoVistoria: String, veiculo: String, cliente: String, dataHora: LocalDateTime, itensVerificados: List<ItemVistoria>, observacoes: String)
+    ~RelatorioVistoria(outro: RelatorioVistoria)
+    +clonar(): RelatorioVistoria
+    +clonarComModificacoes(modificador: Consumer<Builder>): RelatorioVistoria
+    +getIdVistoria(): String
+    +getTipoVistoria(): String
+    +getVeiculo(): String
+    +getCliente(): String
+    +getDataHora(): LocalDateTime
+    +getItensVerificados(): List<ItemVistoria>
+    +getObservacoes(): String
+    +getTotalItens(): int
+    +getItensQueRequeremAtencao(): List<ItemVistoria>
+    +getContagemPorCondicao(): Map<CondicaoItem, Long>
+    +temProblemas(): boolean
+    +exibir(): void
+    +toString(): String
+    +{static} builder(): Builder
+}
+
+' ============================================================
+' BUILDER (INNER CLASS)
+' ============================================================
+
+class "RelatorioVistoria.Builder" as Builder {
+    -idVistoria: String
+    -tipoVistoria: String
+    -veiculo: String
+    -cliente: String
+    -dataHora: LocalDateTime
+    -itensVerificados: List<ItemVistoria>
+    -observacoes: String
+
+    +Builder()
+    +{static} apartirDe(original: RelatorioVistoria): Builder
+    +idVistoria(idVistoria: String): Builder
+    +tipoVistoria(tipoVistoria: String): Builder
+    +veiculo(veiculo: String): Builder
+    +cliente(cliente: String): Builder
+    +dataHora(dataHora: LocalDateTime): Builder
+    +itensVerificados(itens: List<ItemVistoria>): Builder
+    +adicionarItem(item: ItemVistoria): Builder
+    +adicionarItens(itens: List<ItemVistoria>): Builder
+    +limparItens(): Builder
+    +observacoes(observacoes: String): Builder
+    +build(): RelatorioVistoria
+}
+
+' ============================================================
+' REGISTRO DE PROTÓTIPOS (SINGLETON)
+' ============================================================
+
+class RegistroPrototipos {
+    -{static} INSTANCIA: RegistroPrototipos
+    -prototipos: Map<String, RelatorioVistoria>
+
+    -RegistroPrototipos()
+    +{static} getInstancia(): RegistroPrototipos
+    +registrar(chave: String, prototipo: RelatorioVistoria): void
+    +obter(chave: String): Optional<RelatorioVistoria>
+    +remover(chave: String): boolean
+    +contem(chave: String): boolean
+    +listarChaves(): Set<String>
+    +limpar(): void
+    +quantidade(): int
+    +toString(): String
+}
+
+' ============================================================
+' ENUMERAÇÕES
+' ============================================================
+
+enum TipoItemVistoria {
+    LATARIA
+    MOTOR
+    PNEUS
+    ILUMINACAO
+    SISTEMAS_ELETRONICOS
+    ACESSORIOS
+    DOCUMENTOS
+    INTERIOR
+
+    +getNome(): String
+    +getExemplos(): String
+}
+
+enum CondicaoItem {
+    PERFEITO
+    BOM
+    REGULAR
+    DANIFICADO
+    CRITICO
+
+    +getNome(): String
+    +requerAtencao(): boolean
+}
+
+' ============================================================
+' RELACIONAMENTOS
+' ============================================================
+
+IPrototype <|.. ItemVistoria : <<implements>>
+IPrototype <|.. RelatorioVistoria : <<implements>>
+
+RelatorioVistoria +-- Builder : <<inner class>>
+Builder ..> RelatorioVistoria : <<creates>>
+RelatorioVistoria "1" o-- "0..*" ItemVistoria : contém
+Builder --> ItemVistoria : usa
+
+ItemVistoria --> TipoItemVistoria : usa
+ItemVistoria --> CondicaoItem : usa
+
+RegistroPrototipos o-- "0..*" RelatorioVistoria : armazena protótipos
+RegistroPrototipos ..> RelatorioVistoria : retorna clones
+
+' ============================================================
+' NOTAS EXPLICATIVAS
+' ============================================================
+
+note right of IPrototype
+  **Interface Prototype**
+
+  Define contrato para objetos clonáveis.
+  Usa generics para type safety.
+
+  **Vantagens:**
+  • Evita uso do problemático Cloneable
+  • Método clonar() explícito em português
+  • Retorno type-safe com generics
+end note
+
+note left of ItemVistoria
+  **ItemVistoria - Clonagem Simples**
+
+  Implementa clonagem profunda de itens.
+
+  **Detalhes de implementação:**
+  • Construtor de cópia package-private
+  • Copia TODOS os campos, incluindo dataVerificacao
+  • Enums compartilhados (singleton)
+  • LocalDateTime compartilhado (imutável)
+
+  **Uso:**
+  ItemVistoria clone = original.clonar();
+end note
+
+note right of RelatorioVistoria
+  **RelatorioVistoria - Clonagem Complexa**
+
+  Implementa deep copy com lista de ItemVistoria.
+
+  **Detalhes de implementação:**
+  • Construtor de cópia package-private
+  • Loop para clonar cada ItemVistoria
+  • clonarComModificacoes() usa Builder
+  • Builder.apartirDe() para variações
+
+  **Casos de uso:**
+  1. Arquivamento: clone = original.clonar()
+  2. Templates: clonarComModificacoes(b -> ...)
+  3. Entrada/Saída: comparação de estados
+end note
+
+note bottom of Builder
+  **Builder integrado com Prototype**
+
+  apartirDe() permite criar Builder
+  a partir de RelatorioVistoria existente.
+
+  **Exemplo:**
+  RelatorioVistoria saida =
+    entrada.clonarComModificacoes(b ->
+      b.idVistoria("SAIDA-001")
+       .tipoVistoria("SAÍDA")
+       .dataHora(LocalDateTime.now())
+    );
+end note
+
+note left of RegistroPrototipos
+  **Registro de Protótipos (Singleton)**
+
+  Catálogo centralizado de templates reutilizáveis.
+
+  **Características:**
+  • Singleton com eager initialization
+  • Thread-safe (sem overhead)
+  • obter() retorna CÓPIA, nunca original
+  • Validação fail-fast com exceções
+  • Normaliza chaves com trim()
+
+  **Exemplo de uso:**
+  registro.registrar("ENTRADA_PADRAO", template);
+  RelatorioVistoria novo =
+    registro.obter("ENTRADA_PADRAO")
+      .orElseThrow()
+      .clonarComModificacoes(b -> ...);
+end note
+
+' ============================================================
+' FLUXO DE CLONAGEM
+' ============================================================
+
+note as N1
+  **Fluxo de Clonagem Profunda (Deep Copy):**
+
+  1. **ItemVistoria:**
+     • clonar() chama construtor de cópia
+     • Construtor copia todos os 5 campos
+     • Enums e LocalDateTime são compartilhados (seguro)
+
+  2. **RelatorioVistoria:**
+     • clonar() chama construtor de cópia
+     • Construtor copia 6 campos primitivos/String
+     • Loop itera sobre itensVerificados
+     • Cada ItemVistoria é clonado individualmente
+     • Lista nova com itens clonados (deep copy)
+
+  3. **clonarComModificacoes():**
+     • Builder.apartirDe() cria Builder do original
+     • Consumer aplica modificações ao Builder
+     • build() cria nova instância modificada
+end note
+
+' ============================================================
+' CENÁRIOS DE USO
+' ============================================================
+
+note as N2
+  **Cenários de Uso do Padrão Prototype:**
+
+  **1. Arquivamento de Documentos:**
+  RelatorioVistoria arquivado = original.clonar();
+  // Preserva snapshot do estado original
+
+  **2. Templates Reutilizáveis:**
+  registro.registrar("ENTRADA", templateEntrada);
+  RelatorioVistoria novo = registro.obter("ENTRADA")
+    .orElseThrow()
+    .clonarComModificacoes(b ->
+      b.idVistoria(novoId)
+       .cliente(nomeCliente)
+       .dataHora(LocalDateTime.now())
+    );
+
+  **3. Comparação Entrada/Saída:**
+  RelatorioVistoria entrada = processarVistoriaEntrada();
+  RelatorioVistoria saida = entrada.clonarComModificacoes(b ->
+    b.idVistoria("SAIDA-" + entrada.getIdVistoria())
+     .tipoVistoria("VISTORIA DE SAÍDA")
+     .limparItens()
+     // adicionar novos itens após manutenção
+  );
+end note
+
+@enduml
